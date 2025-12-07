@@ -79,8 +79,8 @@ def main():
         )
         
         if not api_key:
-            st.warning("Enter your Groq API key to continue")
-            st.info("Get a free key at [console.groq.com](https://console.groq.com)")
+            st.warning("⚠️ Enter your Groq API key to continue")
+            st.info("📌 Get a free key at [console.groq.com](https://console.groq.com)")
         
         st.divider()
         
@@ -98,7 +98,7 @@ def main():
     
     with col1:
         topic = st.text_input(
-            "Enter a topic",
+            "🔍 Enter a topic",
             placeholder="e.g., Artificial Intelligence, Climate Change, Sports",
             help="Enter any topic to get the latest news"
         )
@@ -116,9 +116,9 @@ def main():
     # Generate audio summary
     if generate_btn:
         if not api_key:
-            st.error("Please enter your Groq API key in the sidebar")
+            st.error("❌ Please enter your Groq API key in the sidebar")
         elif not topic:
-            st.error("Please enter a topic")
+            st.error("❌ Please enter a topic")
         else:
             with st.spinner("🔄 Processing..."):
                 # Step 1: Fetch news
@@ -134,10 +134,10 @@ def main():
                     return
                 
                 # Show fetched articles
-                status_text.text(f"Found {len(articles)} articles")
+                status_text.text(f"✅ Found {len(articles)} articles")
                 progress_bar.progress(50)
                 
-                with st.expander(f"View {len(articles)} articles"):
+                with st.expander(f"📄 View {len(articles)} articles"):
                     for i, article in enumerate(articles, 1):
                         st.markdown(f"**{i}. {article['title']}**")
                         st.caption(article['summary'])
@@ -146,7 +146,7 @@ def main():
                         st.divider()
                 
                 # Step 2: Generate summary
-                status_text.text("Generating AI summary...")
+                status_text.text("🤖 Generating AI summary...")
                 progress_bar.progress(75)
                 
                 headlines_text = "\n\n".join([
@@ -157,20 +157,20 @@ def main():
                 summary = summarize_with_groq(headlines_text, api_key)
                 
                 # Show script
-                with st.expander("View broadcast script"):
+                with st.expander("📝 View broadcast script"):
                     st.markdown(summary)
                 
                 # Step 3: Generate audio
-                status_text.text("Converting to audio...")
+                status_text.text("🎵 Converting to audio...")
                 progress_bar.progress(90)
                 
                 audio_path = generate_audio(summary)
                 
                 if audio_path and os.path.exists(audio_path):
                     progress_bar.progress(100)
-                    status_text.text("Complete!")
+                    status_text.text("✅ Complete!")
                     
-                    st.success("Audio summary generated successfully!")
+                    st.success("🎉 Audio summary generated successfully!")
                     
                     # Play audio
                     with open(audio_path, 'rb') as audio_file:
@@ -181,7 +181,7 @@ def main():
                         col1, col2, col3 = st.columns([1, 2, 1])
                         with col2:
                             st.download_button(
-                                "Download Audio",
+                                "⬇️ Download Audio",
                                 data=audio_bytes,
                                 file_name=f"newsninja-{topic.replace(' ', '-')[:30]}.mp3",
                                 mime="audio/mpeg",
@@ -201,28 +201,39 @@ def main():
     
     with st.expander("📖 How to use NewsNinja"):
         st.markdown("""
-        ### Quick Start Guide
-        
-        1. **Get API Key (Free)**
-           - Visit [console.groq.com](https://console.groq.com)
-           - Sign up for a free account
-           - Copy your API key
-        
-        2. **Enter API Key**
-           - Paste it in the sidebar (left side)
-        
-        3. **Enter Topic**
-           - Type any topic (e.g., "Technology", "Sports", "AI")
-        
-        4. **Generate**
-           - Click the "Generate" button
-           - Wait 10-30 seconds
-        
-        5. **Listen or Download**
-           - Play the audio directly
-           - Download the MP3 file
-        
-     
+### Quick Start Guide
+
+1. **Get API Key (Free)**
+   - Visit [console.groq.com](https://console.groq.com)
+   - Sign up for a free account
+   - Copy your API key
+
+2. **Enter API Key**
+   - Paste it in the sidebar (left side)
+
+3. **Enter Topic**
+   - Type any topic (e.g., "Technology", "Sports", "AI")
+
+4. **Generate**
+   - Click the "🚀 Generate" button
+   - Wait 10-30 seconds
+
+5. **Listen or Download**
+   - Play the audio directly
+   - Download the MP3 file
+
+### Features
+- ✅ Latest news from Google News RSS
+- ✅ AI-powered summarization
+- ✅ Natural text-to-speech conversion
+- ✅ Download audio files
+- ✅ No backend required
+
+### Tips
+- Be specific with topics for better results
+- Try topics like "AI", "Climate Change", "Space Exploration"
+- Adjust max articles in sidebar for more/less content
+        """)
     
     # Footer
     st.divider()
