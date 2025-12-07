@@ -29,7 +29,10 @@ def summarize_with_groq(headlines: str, api_key: str):
     """Summarize headlines using Groq API"""
     try:
         from groq import Groq
+        
+        # Initialize Groq client with just API key
         client = Groq(api_key=api_key)
+        
         response = client.chat.completions.create(
             model="llama-3.1-8b-instant",
             messages=[
@@ -48,6 +51,8 @@ def summarize_with_groq(headlines: str, api_key: str):
         return response.choices[0].message.content
     except ImportError:
         return "Error: Groq library not installed. Please check requirements."
+    except AttributeError as e:
+        return f"Error: Groq API initialization failed. Please check your API key and update the groq library. Details: {str(e)}"
     except Exception as e:
         return f"Error generating summary: {str(e)}"
 
