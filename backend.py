@@ -9,7 +9,18 @@ import logging
 from models import NewsRequest
 from utils import generate_broadcast_news, tts_to_audio
 from news_scraper import NewsScraper
-from reddit_scraper import scrape_reddit_topics
+
+# Only import reddit_scraper if not in Streamlit environment
+try:
+    from reddit_scraper import scrape_reddit_topics
+    REDDIT_AVAILABLE = True
+except ImportError as e:
+    logging.warning(f"Reddit scraper not available: {e}")
+    REDDIT_AVAILABLE = False
+    
+    # Define dummy function
+    async def scrape_reddit_topics(topics):
+        return {"reddit_analysis": {t: "Reddit scraping not available in this environment" for t in topics}}
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -27,7 +38,18 @@ app.add_middleware(
 
 @app.get("/")
 async def root():
-    return {"status": "healthy", "service": "NewsNinja API"}
+    return {
+        "status": "healthy", 
+        "service": "NewsNinja API",
+        "reddit_available": REDDIT_AVAILABLE
+    }
+
+@app.get("/health")
+async def health():
+    return {
+        "status": "ok",
+        "reddit_scraping": REDDIT_AVAILABLE
+    }
 
 @app.post("/generate-news-audio")
 async def generate_news_audio(request: NewsRequest):
@@ -44,11 +66,15 @@ async def generate_news_audio(request: NewsRequest):
                 results["news"] = {"news_analysis": {t: f"Error: {e}" for t in request.topics}}
         
         if request.source_type in ["reddit", "both"]:
-            try:
-                results["reddit"] = await scrape_reddit_topics(request.topics)
-            except Exception as e:
-                logger.error(f"Reddit error: {e}")
-                results["reddit"] = {"reddit_analysis": {t: f"Error: {e}" for t in request.topics}}
+            if not REDDIT_AVAILABLE:
+                logger.warning("Reddit scraping requested but not available")
+                results["reddit"] = {"reddit_analysis": {t: "Reddit scraping not available" for t in request.topics}}
+            else:
+                try:
+                    results["reddit"] = await scrape_reddit_topics(request.topics)
+                except Exception as e:
+                    logger.error(f"Reddit error: {e}")
+                    results["reddit"] = {"reddit_analysis": {t: f"Error: {e}" for t in request.topics}}
 
         news_summary = generate_broadcast_news(
             api_key=os.getenv("GROQ_API_KEY"),
@@ -84,3 +110,7 @@ if __name__ == "__main__":
     import uvicorn
     Path("audio").mkdir(exist_ok=True)
     uvicorn.run("backend:app", host="0.0.0.0", port=1234, reload=True)
+   
+               
+           
+       
